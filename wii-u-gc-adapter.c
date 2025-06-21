@@ -47,9 +47,9 @@ const int BUTTON_OFFSET_VALUES[16] = {
    -1,
    -1,
    BTN_SOUTH,
-   BTN_WEST,
    BTN_EAST,
    BTN_NORTH,
+   BTN_WEST,
    BTN_DPAD_LEFT,
    BTN_DPAD_RIGHT,
    BTN_DPAD_DOWN,
@@ -374,10 +374,24 @@ static void handle_payload(int i, struct ports *port, unsigned char *payload, st
          port->buttons |= pressed;
       }
    }
-
+   //printf("\033[2J\033[H");
    for (int j = 0; j < 6; j++)
    {
-      unsigned char value = payload[j+3];
+      int original = payload[j+3];
+      int adj_value = ((original - 128) * 1.1) + 128;
+      unsigned char value;
+      if(adj_value > 0xff){
+          value = 0xff;
+          printf("axis %d overflow\n", j);
+      } if(adj_value < 0){
+          value = 0;
+          printf("axis %d underflow\n", j);
+      } else {
+          value = adj_value;
+      }
+      //printf("axis %d is %d => %d => %d\n", j, original, adj_value, value);
+
+       //unsigned char value = min(adj_value, 0xff);
 
       if (AXIS_OFFSET_VALUES[j] == ABS_Y || AXIS_OFFSET_VALUES[j] == ABS_RY)
          value ^= 0xFF; // flip from 0 - 255 to 255 - 0
